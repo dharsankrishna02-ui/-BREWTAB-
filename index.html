@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Café Order & Revenue Management System</title>
+  <meta name="description" content="A professional café order and revenue management system to track orders, prevent payment loss, and manage your café business efficiently." />
+  <meta name="theme-color" content="#6B3A2A" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ─────────────────────────────────────────────
+     APP LAYOUT
+     ───────────────────────────────────────────── -->
+<div class="app-layout">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">☕</div>
+      <h1>Smart Café</h1>
+      <p>Order & Revenue System</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <button class="nav-link active" data-section="dashboard" onclick="navigateTo('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+
+      <button class="nav-link" data-section="new-order" onclick="navigateTo('new-order')">
+        <span class="nav-icon">➕</span> New Order
+      </button>
+
+      <button class="nav-link" data-section="active-orders" onclick="navigateTo('active-orders')">
+        <span class="nav-icon">📋</span> Orders
+      </button>
+
+      <div class="nav-section-label">Management</div>
+
+      <button class="nav-link" data-section="menu" onclick="navigateTo('menu')">
+        <span class="nav-icon">🍽️</span> Menu
+      </button>
+
+      <button class="nav-link" data-section="history" onclick="navigateTo('history')">
+        <span class="nav-icon">🕐</span> Order History
+      </button>
+
+      <button class="nav-link" data-section="revenue" onclick="navigateTo('revenue')">
+        <span class="nav-icon">💰</span> Revenue
+      </button>
+
+      <div class="nav-section-label">System</div>
+
+      <button class="nav-link" data-section="notifications" onclick="navigateTo('notifications')">
+        <span class="nav-icon">🔔</span> Notifications
+      </button>
+
+      <button class="nav-link" data-section="settings" onclick="navigateTo('settings')">
+        <span class="nav-icon">⚙️</span> Settings
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-time">
+        <div id="current-time">00:00:00</div>
+        <div id="current-date">Loading...</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(); this.classList.remove('show')"></div>
+
+  <!-- ─── MAIN CONTENT ─── -->
+  <div class="main-content">
+
+    <!-- ─── TOP BAR ─── -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar(); document.getElementById('sidebar-overlay').classList.toggle('show')" aria-label="Toggle menu">☰</button>
+        <span id="page-title">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <button class="new-order-topbtn" onclick="navigateTo('new-order')" id="quick-new-order-btn">
+          ➕ New Order
+        </button>
+        <div class="notif-wrapper">
+          <button class="topbar-btn" id="notif-btn" onclick="toggleNotifications()" aria-label="Notifications">
+            🔔
+            <span id="notif-badge" style="display:none"></span>
+          </button>
+          <div id="notif-dropdown">
+            <div class="notif-header">🔔 Notifications</div>
+            <div id="notifications-panel"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: DASHBOARD
+         ═══════════════════════════════════════════ -->
+    <section id="section-dashboard" class="page-section active">
+
+      <div class="section-header">
+        <div>
+          <h2>Dashboard Overview</h2>
+          <p>Welcome back! Here's what's happening at your café today.</p>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-label">Total Orders Today</div>
+          <div class="stat-value" id="stat-total-orders">0</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="stat-completed">0</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-label">Active / Pending</div>
+          <div class="stat-value" id="stat-pending">0</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-icon">❌</div>
+          <div class="stat-label">Cancelled</div>
+          <div class="stat-value" id="stat-cancelled">0</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">Total Sales Today</div>
+          <div class="stat-value" id="stat-sales">₹0</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-label">Pending Payment</div>
+          <div class="stat-value" id="stat-pending-payment">₹0</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-icon">👥</div>
+          <div class="stat-label">Customers Today</div>
+          <div class="stat-value" id="stat-customers">0</div>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="chart-grid" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="card">
+          <div class="card-title"><span class="card-icon">📈</span> Weekly Sales (₹)</div>
+          <div class="chart-container"><canvas id="weekly-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="card-icon">📅</span> Monthly Sales (₹)</div>
+          <div class="chart-container"><canvas id="monthly-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="card-icon">🧾</span> Weekly Order Count</div>
+          <div class="chart-container"><canvas id="weekly-orders-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 + Widgets -->
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-title"><span class="card-icon">💳</span> Payment Method Distribution (Today)</div>
+          <div class="chart-container" style="height:190px"><canvas id="payment-donut"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="card-icon">🏆</span> Most Ordered Items</div>
+          <div id="most-ordered-list"></div>
+        </div>
+      </div>
+
+      <!-- Active Orders + Pending Payments -->
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-title flex-between">
+            <span><span class="card-icon">🔥</span> Orders</span>
+            <button class="btn-settings" onclick="navigateTo('active-orders')" style="font-size:12px;padding:4px 10px;">View All →</button>
+          </div>
+          <div id="dashboard-active-orders"></div>
+        </div>
+        <div class="card">
+          <div class="card-title flex-between">
+            <span><span class="card-icon">⚠️</span> Pending Payments</span>
+            <button class="btn-settings" onclick="navigateTo('revenue')" style="font-size:12px;padding:4px 10px;">View All →</button>
+          </div>
+          <div id="dashboard-pending-payments"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: NEW ORDER
+         ═══════════════════════════════════════════ -->
+    <section id="section-new-order" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>New Order</h2>
+          <p>Select items from the menu and build your order</p>
+        </div>
+      </div>
+
+      <div class="new-order-layout">
+
+        <!-- Menu Panel -->
+        <div class="menu-panel">
+          <div class="menu-panel-header">
+            <h3>☕ Café Menu</h3>
+            <p>Tap any item to add it to the order</p>
+          </div>
+          <div id="menu-category-bar"></div>
+          <div id="menu-grid"></div>
+        </div>
+
+        <!-- Cart Panel -->
+        <div class="cart-panel">
+          <div class="cart-header">
+            <h3>🛒 Current Order</h3>
+            <p>Review and confirm before placing</p>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="cart-customer-section">
+            <input type="text" id="customer-name-input" class="cart-input" placeholder="👤 Customer name" />
+            <input type="text" id="table-no-input" class="cart-input" placeholder="🪑 Table No. (optional)" />
+          </div>
+
+          <!-- Cart Items -->
+          <div class="cart-items-container">
+            <div id="cart-empty" style="display:flex;">
+              <span class="empty-icon">🛒</span>
+              <p>Your cart is empty.<br/>Tap menu items to add them.</p>
+            </div>
+            <div id="cart-items"></div>
+          </div>
+
+          <!-- Cart Footer -->
+          <div class="cart-footer">
+            <!-- Options -->
+            <div class="cart-options">
+              <div class="cart-option-group">
+                <label class="cart-option-label">Discount %</label>
+                <input type="number" id="discount-input" class="cart-input-sm" value="0" min="0" max="100" oninput="handleDiscountChange(event)" />
+              </div>
+              <div class="cart-option-group">
+                <label class="cart-option-label">Order Status</label>
+                <select id="order-status-select" class="cart-select">
+                  <option value="Pending" selected>⏳ Pending</option>
+                  <option value="New">🆕 New</option>
+                  <option value="Preparing">👨‍🍳 Preparing</option>
+                </select>
+              </div>
+              <div class="cart-option-group">
+                <label class="cart-option-label">Payment Method</label>
+                <select id="payment-method-select" class="cart-select">
+                  <option value="Cash">💵 Cash</option>
+                  <option value="UPI">📱 UPI</option>
+                  <option value="Card">💳 Card</option>
+                </select>
+              </div>
+              <div class="cart-option-group">
+                <label class="cart-option-label">Payment Status</label>
+                <select id="payment-status-select" class="cart-select">
+                  <option value="Pending">⏳ Pending</option>
+                  <option value="Paid">✅ Paid</option>
+                  <option value="Partial">🔶 Partial</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="cart-totals">
+              <div class="cart-total-row">
+                <span>Subtotal</span>
+                <span id="cart-subtotal">₹0</span>
+              </div>
+              <div class="cart-total-row">
+                <span>Discount</span>
+                <span id="cart-discount">- ₹0</span>
+              </div>
+              <div class="cart-total-row grand-total">
+                <span>Total</span>
+                <span id="cart-total">₹0</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="cart-actions">
+              <button class="btn-place-order" id="place-order-btn" onclick="placeOrder()" disabled>
+                🚀 Place Order
+              </button>
+              <button class="btn-clear-cart" onclick="clearCart()">🗑️ Clear Cart</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: ACTIVE ORDERS
+         ═══════════════════════════════════════════ -->
+    <section id="section-active-orders" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>Orders</h2>
+          <p>Manage and update all orders</p>
+        </div>
+        <button class="btn-add-item" onclick="navigateTo('new-order')" id="active-new-order-btn">➕ New Order</button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="orders-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="active-orders-search" placeholder="Search by Order ID or Customer..." oninput="handleActiveOrdersSearch(event)" />
+        </div>
+        <div class="filter-group">
+          <button class="ao-filter-btn active" data-filter="All" onclick="setActiveOrdersFilter('All')">All</button>
+          <button class="ao-filter-btn" data-filter="Pending" onclick="setActiveOrdersFilter('Pending')">⏳ Pending</button>
+          <button class="ao-filter-btn" data-filter="New" onclick="setActiveOrdersFilter('New')">🆕 New</button>
+          <button class="ao-filter-btn" data-filter="Preparing" onclick="setActiveOrdersFilter('Preparing')">👨‍🍳 Preparing</button>
+          <button class="ao-filter-btn" data-filter="Ready" onclick="setActiveOrdersFilter('Ready')">✅ Ready</button>
+          <button class="ao-filter-btn" data-filter="Completed" onclick="setActiveOrdersFilter('Completed')">🎉 Completed</button>
+          <button class="ao-filter-btn" data-filter="Cancelled" onclick="setActiveOrdersFilter('Cancelled')">❌ Cancelled</button>
+        </div>
+      </div>
+
+      <div id="active-orders-list"></div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: MENU MANAGEMENT
+         ═══════════════════════════════════════════ -->
+    <section id="section-menu" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>Menu Management</h2>
+          <p>Add, edit, delete and manage menu items and prices</p>
+        </div>
+        <button class="btn-add-item" onclick="openMenuItemModal(null)" id="add-menu-item-btn">
+          ➕ Add Item
+        </button>
+      </div>
+
+      <div id="menu-page-list"></div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: ORDER HISTORY
+         ═══════════════════════════════════════════ -->
+    <section id="section-history" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>Order History</h2>
+          <p>View and filter all past orders</p>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="orders-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="history-search" placeholder="Search by Order ID or Customer..." oninput="handleHistorySearch(event)" />
+        </div>
+        <div class="filter-group">
+          <button class="hist-filter-btn active" data-filter="today" onclick="setHistoryFilter('today')">Today</button>
+          <button class="hist-filter-btn" data-filter="yesterday" onclick="setHistoryFilter('yesterday')">Yesterday</button>
+          <button class="hist-filter-btn" data-filter="week" onclick="setHistoryFilter('week')">This Week</button>
+          <button class="hist-filter-btn" data-filter="month" onclick="setHistoryFilter('month')">This Month</button>
+          <button class="hist-filter-btn" data-filter="all" onclick="setHistoryFilter('all')">All Time</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="order-history-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Method</th>
+              <th>Date & Time</th>
+            </tr>
+          </thead>
+          <tbody id="order-history-table-body">
+            <tr><td colspan="8" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: REVENUE MONITORING
+         ═══════════════════════════════════════════ -->
+    <section id="section-revenue" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>Revenue Monitoring</h2>
+          <p>Track every rupee — ensure no payment is missed</p>
+        </div>
+        <div class="filter-group">
+          <button class="rev-filter-btn active" data-filter="today" onclick="setRevenueFilter('today')">Today</button>
+          <button class="rev-filter-btn" data-filter="week" onclick="setRevenueFilter('week')">This Week</button>
+          <button class="rev-filter-btn" data-filter="month" onclick="setRevenueFilter('month')">This Month</button>
+        </div>
+      </div>
+
+      <!-- Revenue Summary Cards -->
+      <div class="revenue-summary">
+        <div class="rev-card">
+          <div class="rev-card-icon">🧾</div>
+          <div class="rev-card-label">Total Order Value</div>
+          <div class="rev-card-value" id="rev-total-value">₹0</div>
+        </div>
+        <div class="rev-card success">
+          <div class="rev-card-icon">✅</div>
+          <div class="rev-card-label">Amount Collected</div>
+          <div class="rev-card-value" id="rev-collected">₹0</div>
+        </div>
+        <div class="rev-card danger">
+          <div class="rev-card-icon">⚠️</div>
+          <div class="rev-card-label">Pending Amount</div>
+          <div class="rev-card-value" id="rev-pending">₹0</div>
+        </div>
+        <div class="rev-card warning">
+          <div class="rev-card-icon">🏷️</div>
+          <div class="rev-card-label">Total Discounts Given</div>
+          <div class="rev-card-value" id="rev-discounts">₹0</div>
+        </div>
+      </div>
+
+      <!-- Collection Progress Bar -->
+      <div class="rev-progress-bar-container">
+        <div class="rev-progress-label">
+          <span>💹 Collection Progress</span>
+          <span id="rev-progress-pct" style="font-weight:700;color:var(--success)">0% collected</span>
+        </div>
+        <div class="rev-progress-track">
+          <div id="rev-progress-bar" style="width:0%"></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+          The bar shows how much of the total order value has been collected as payment.
+          A gap indicates uncollected revenue.
+        </p>
+      </div>
+
+      <!-- Unpaid Orders -->
+      <div class="rev-section">
+        <div class="rev-section-header" style="background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.15);">
+          <span style="font-size:18px">🚨</span>
+          <span style="color:var(--danger)">Unpaid Orders</span>
+          <span class="rev-section-badge" style="background:rgba(220,38,38,0.12);color:var(--danger)">Action Required</span>
+        </div>
+        <div class="rev-section-body" id="rev-unpaid-list"></div>
+      </div>
+
+      <!-- Partial Payments -->
+      <div class="rev-section">
+        <div class="rev-section-header" style="background:rgba(217,119,6,0.06);border-color:rgba(217,119,6,0.15);">
+          <span style="font-size:18px">🔶</span>
+          <span style="color:var(--warning)">Partial Payments</span>
+          <span class="rev-section-badge" style="background:rgba(217,119,6,0.12);color:var(--warning)">Incomplete</span>
+        </div>
+        <div class="rev-section-body" id="rev-partial-list"></div>
+      </div>
+
+      <!-- Cancelled Orders -->
+      <div class="rev-section">
+        <div class="rev-section-header">
+          <span style="font-size:18px">❌</span>
+          <span>Cancelled Orders</span>
+        </div>
+        <div class="rev-section-body" id="rev-cancelled-list"></div>
+      </div>
+
+      <!-- Discounted Orders -->
+      <div class="rev-section">
+        <div class="rev-section-header">
+          <span style="font-size:18px">🏷️</span>
+          <span>Discounted Orders</span>
+        </div>
+        <div class="rev-section-body" id="rev-discount-list"></div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: NOTIFICATIONS
+         ═══════════════════════════════════════════ -->
+    <section id="section-notifications" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>Notifications</h2>
+          <p>System alerts and order updates</p>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:680px">
+        <div id="notifications-full-panel"></div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION: SETTINGS
+         ═══════════════════════════════════════════ -->
+    <section id="section-settings" class="page-section">
+
+      <div class="section-header">
+        <div>
+          <h2>Settings</h2>
+          <p>Configure your café system</p>
+        </div>
+      </div>
+
+      <div style="max-width:680px">
+
+        <!-- Café Info -->
+        <div class="settings-section">
+          <h3>☕ Café Information</h3>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Café Name</strong>
+              <span>Smart Café</span>
+            </div>
+            <button class="btn-settings" onclick="showToast('Edit café name (feature coming soon)', 'info')">Edit</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Currency</strong>
+              <span>Indian Rupee (₹ INR)</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Total Orders in System</strong>
+              <span id="settings-order-count">Loading...</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Total Menu Items</strong>
+              <span id="settings-menu-count">Loading...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="settings-section">
+          <h3>🗃️ Data Management</h3>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Export Data</strong>
+              <span>Download all orders and menu data as JSON</span>
+            </div>
+            <button class="btn-settings" onclick="exportData()" id="export-data-btn">📥 Export</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Reset to Sample Data</strong>
+              <span>⚠️ This will permanently delete all current data</span>
+            </div>
+            <button class="btn-settings danger" onclick="clearAllData()" id="reset-data-btn">🗑️ Reset</button>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="settings-section">
+          <h3>ℹ️ About</h3>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Application</strong>
+              <span>Smart Café Order & Revenue Management System</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Version</strong>
+              <span>1.0.0</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Storage</strong>
+              <span>Browser localStorage (no backend required)</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <strong>Purpose</strong>
+              <span>Prevent revenue loss from forgotten orders, unpaid bills, and billing errors</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /.main-content -->
+</div><!-- /.app-layout -->
+
+<!-- ─────────────────────────────────────────────
+     MODAL: MENU ITEM (Add / Edit)
+     ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="menu-item-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="menu-modal-title">Add Menu Item</h3>
+      <button class="modal-close" onclick="closeMenuItemModal()" aria-label="Close">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="menu-item-name">Item Name *</label>
+      <input type="text" id="menu-item-name" class="form-input" placeholder="e.g. Espresso" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="menu-item-category">Category *</label>
+        <select id="menu-item-category" class="form-select">
+          <option value="Coffee">Coffee</option>
+          <option value="Tea">Tea</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Desserts">Desserts</option>
+          <option value="Beverages">Beverages</option>
+          <option value="Meals">Meals</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="menu-item-price">Price (₹) *</label>
+        <input type="number" id="menu-item-price" class="form-input" placeholder="e.g. 150" min="1" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="menu-item-icon">Icon (Emoji)</label>
+      <input type="text" id="menu-item-icon" class="form-input" placeholder="e.g. ☕" maxlength="4" />
+    </div>
+
+    <div class="form-group">
+      <div class="checkbox-group">
+        <input type="checkbox" id="menu-item-available" checked />
+        <label for="menu-item-available">Item is available for ordering</label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeMenuItemModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveMenuItem()" id="save-menu-item-btn">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────
+     TOAST CONTAINER
+     ───────────────────────────────────────────── -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ─────────────────────────────────────────────
+     SETTINGS STATS INIT
+     ───────────────────────────────────────────── -->
+<script>
+  // Patch navigateTo to update settings counts
+  const _origNavigate = navigateTo;
+</script>
+<script src="script.js"></script>
+<script>
+  // Update settings page counts when navigated to
+  const _settingsNav = navigateTo;
+  // Patch after script loads
+  document.addEventListener("DOMContentLoaded", () => {
+    // Override nav to also update settings counts
+    const origNav = window.navigateTo;
+    window.navigateTo = function(section) {
+      origNav(section);
+      if (section === "settings") {
+        const oc = document.getElementById("settings-order-count");
+        const mc = document.getElementById("settings-menu-count");
+        if (oc) oc.textContent = state.orders.length + " orders";
+        if (mc) mc.textContent = state.menu.length + " items";
+      }
+      if (section === "notifications") {
+        const fp = document.getElementById("notifications-full-panel");
+        if (fp) {
+          if (!state.notifications.length) {
+            fp.innerHTML = `<div class="empty-state-sm">No notifications yet</div>`;
+          } else {
+            fp.innerHTML = state.notifications.slice(0, 50).map(n => `
+              <div class="notif-item ${n.read ? 'read' : 'unread'}">
+                <span class="notif-icon">${n.icon}</span>
+                <div class="notif-body">
+                  <p>${n.message}</p>
+                  <span class="notif-time">${formatDateTime(n.time)}</span>
+                </div>
+              </div>
+            `).join("");
+          }
+        }
+      }
+    };
+  });
+</script>
+
+</body>
+</html>
