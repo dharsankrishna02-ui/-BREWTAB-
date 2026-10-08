@@ -9,23 +9,27 @@
 
 const DEFAULT_MENU = [
   // Coffee
-  { id: "m001", category: "Coffee", name: "Cappuccino",   price: 180, icon: "☕", available: true },
-  { id: "m002", category: "Coffee", name: "Espresso",     price: 120, icon: "☕", available: true },
-  { id: "m003", category: "Coffee", name: "Latte",        price: 160, icon: "☕", available: true },
-  { id: "m004", category: "Coffee", name: "Cold Coffee",  price: 200, icon: "🧊", available: true },
+  { id: "m001", category: "Coffee", name: "Cappuccino",         price: 180, icon: "☕", available: true },
+  { id: "m002", category: "Coffee", name: "Espresso",           price: 120, icon: "☕", available: true },
+  { id: "m003", category: "Coffee", name: "Latte",              price: 160, icon: "☕", available: true },
+  { id: "m004", category: "Coffee", name: "Cold Coffee",        price: 200, icon: "🧊", available: true },
+  { id: "m015", category: "Coffee", name: "Caramel Macchiato",  price: 230, icon: "☕", available: false },
   // Tea
-  { id: "m005", category: "Tea",    name: "Masala Tea",   price: 60,  icon: "🍵", available: true },
-  { id: "m006", category: "Tea",    name: "Green Tea",    price: 80,  icon: "🍵", available: true },
-  { id: "m007", category: "Tea",    name: "Lemon Tea",    price: 70,  icon: "🍵", available: true },
+  { id: "m005", category: "Tea",    name: "Masala Tea",         price: 60,  icon: "🍵", available: true },
+  { id: "m006", category: "Tea",    name: "Green Tea",          price: 80,  icon: "🍵", available: true },
+  { id: "m007", category: "Tea",    name: "Lemon Tea",          price: 70,  icon: "🍵", available: true },
+  { id: "m016", category: "Tea",    name: "Matcha Latte",       price: 190, icon: "🍵", available: false },
   // Snacks
-  { id: "m008", category: "Snacks", name: "Sandwich",     price: 180, icon: "🥪", available: true },
-  { id: "m009", category: "Snacks", name: "French Fries", price: 150, icon: "🍟", available: true },
-  { id: "m010", category: "Snacks", name: "Burger",       price: 250, icon: "🍔", available: true },
-  { id: "m011", category: "Snacks", name: "Garlic Bread", price: 120, icon: "🥖", available: true },
+  { id: "m008", category: "Snacks", name: "Sandwich",           price: 180, icon: "🥪", available: true },
+  { id: "m009", category: "Snacks", name: "French Fries",       price: 150, icon: "🍟", available: true },
+  { id: "m010", category: "Snacks", name: "Burger",             price: 250, icon: "🍔", available: true },
+  { id: "m011", category: "Snacks", name: "Garlic Bread",       price: 120, icon: "🥖", available: true },
+  { id: "m017", category: "Snacks", name: "Butter Croissant",   price: 140, icon: "🥐", available: false },
   // Desserts
-  { id: "m012", category: "Desserts", name: "Brownie",    price: 130, icon: "🍫", available: true },
-  { id: "m013", category: "Desserts", name: "Cheesecake", price: 200, icon: "🎂", available: true },
-  { id: "m014", category: "Desserts", name: "Ice Cream",  price: 110, icon: "🍦", available: true },
+  { id: "m012", category: "Desserts", name: "Brownie",          price: 130, icon: "🍫", available: true },
+  { id: "m013", category: "Desserts", name: "Cheesecake",       price: 200, icon: "🎂", available: true },
+  { id: "m014", category: "Desserts", name: "Ice Cream",        price: 110, icon: "🍦", available: true },
+  { id: "m018", category: "Desserts", name: "Tiramisu Cake",    price: 240, icon: "🍰", available: false },
 ];
 
 const STATUS_COLORS = {
@@ -96,6 +100,13 @@ function loadState() {
         const candidate = state.orders.find(o => o.status === "New") || state.orders[0];
         if (candidate) candidate.status = "Pending";
       }
+      // Ensure default unavailable items are included if not present in saved menu
+      const unavailableDefaults = DEFAULT_MENU.filter(m => !m.available);
+      unavailableDefaults.forEach(def => {
+        if (!state.menu.some(m => m.id === def.id || m.name === def.name)) {
+          state.menu.push({ ...def });
+        }
+      });
     } else {
       state.menu = [...DEFAULT_MENU];
       seedSampleOrders();
@@ -180,7 +191,11 @@ function isThisWeek(iso) { return new Date(iso).getTime() >= todayStart()-6*8640
 function isThisMonth(iso){ const d=new Date(iso); const n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); }
 
 function getUniqueCategories() {
-  return ["All", ...new Set(state.menu.map(m => m.category))];
+  const cats = ["All", ...new Set(state.menu.map(m => m.category))];
+  if (state.menu.some(m => !m.available)) {
+    cats.push("🚫 Unavailable");
+  }
+  return cats;
 }
 
 function generateOrderId() {
@@ -219,6 +234,7 @@ function addToCart(menuId) {
   const existing = state.currentOrderItems.find(i => i.id === menuId);
   if (existing) { existing.qty++; } else { state.currentOrderItems.push({ ...item, qty: 1 }); }
   renderCart();
+  renderMenuGrid();
   showToast(item.icon + " " + item.name + " added");
 }
 
@@ -228,11 +244,13 @@ function removeFromCart(menuId) {
   if (state.currentOrderItems[idx].qty > 1) { state.currentOrderItems[idx].qty--; }
   else { state.currentOrderItems.splice(idx, 1); }
   renderCart();
+  renderMenuGrid();
 }
 
 function removeItemFromCart(menuId) {
   state.currentOrderItems = state.currentOrderItems.filter(i => i.id !== menuId);
   renderCart();
+  renderMenuGrid();
 }
 
 function clearCart() {
@@ -242,6 +260,7 @@ function clearCart() {
   const defaults = ["","","0","Pending","Cash","Pending"];
   ids.forEach((id, i) => { const el = document.getElementById(id); if (el) { if (el.tagName==="SELECT") el.value=defaults[i]; else el.value=defaults[i]; } });
   renderCart();
+  renderMenuGrid();
 }
 
 function getCartTotals() {
@@ -681,19 +700,90 @@ function renderMenuGrid() {
   if (!grid) return;
   const categories = getUniqueCategories();
   if (catBar) {
-    catBar.innerHTML = categories.map(cat=>`
-      <button class="cat-btn ${state.menuFilterCategory===cat?"active":""}" onclick="filterMenuCategory('${cat}')">${cat}</button>
+    catBar.innerHTML = categories.map(cat => `
+      <button class="cat-btn ${state.menuFilterCategory === cat ? "active" : ""}" onclick="filterMenuCategory('${cat}')">${cat}</button>
     `).join("");
   }
-  const filtered = state.menuFilterCategory==="All" ? state.menu : state.menu.filter(m=>m.category===state.menuFilterCategory);
-  grid.innerHTML = filtered.map(item=>`
-    <button class="menu-card ${!item.available?"unavailable":""}" onclick="${item.available?"addToCart('"+item.id+"')":""}">
-      <span class="menu-card-icon">${item.icon}</span>
-      <span class="menu-card-name">${item.name}</span>
-      <span class="menu-card-price">${formatCurrency(item.price)}</span>
-      ${!item.available?'<span class="unavailable-tag">Unavailable</span>':""}
-    </button>
-  `).join("");
+  let filtered;
+  if (state.menuFilterCategory === "All") {
+    filtered = state.menu;
+  } else if (state.menuFilterCategory === "🚫 Unavailable") {
+    filtered = state.menu.filter(m => !m.available);
+  } else {
+    filtered = state.menu.filter(m => m.category === state.menuFilterCategory);
+  }
+
+  grid.innerHTML = filtered.map(item => {
+    const inCart = state.currentOrderItems.find(i => i.id === item.id);
+    return `
+      <div class="menu-card ${!item.available ? "unavailable" : ""}" onclick="${item.available ? `handleCardClick('${item.id}', event)` : ""}">
+        <span class="menu-card-icon">${item.icon}</span>
+        <span class="menu-card-name">${item.name}</span>
+        <div class="menu-card-price-tag">
+          <span class="price-val">${formatCurrency(item.price)}</span>
+          <button class="price-edit-btn" onclick="quickEditPrice('${item.id}', event)" title="Modify amount/price">✏️</button>
+        </div>
+        ${item.available ? `
+          ${inCart ? `
+            <div class="menu-card-btn-action in-cart">
+              <button class="cart-step-btn minus" onclick="removeFromCart('${item.id}'); event.stopPropagation();" title="Decrease">−</button>
+              <span class="cart-step-info">${inCart.qty} · ${formatCurrency(item.price * inCart.qty)}</span>
+              <button class="cart-step-btn plus" onclick="addToCart('${item.id}'); event.stopPropagation();" title="Add more">+</button>
+            </div>
+          ` : `
+            <button class="menu-card-btn-action add-btn" onclick="addToCart('${item.id}'); event.stopPropagation();">
+              <span>+ Add</span>
+              <span class="btn-tag-amount">${formatCurrency(item.price)}</span>
+            </button>
+          `}
+        ` : `
+          <button class="menu-card-btn-action unavailable-btn" onclick="quickToggleAvailability('${item.id}', event)" title="Click to make available">
+            <span>🚫 Unavailable</span>
+          </button>
+        `}
+      </div>
+    `;
+  }).join("");
+}
+
+function handleCardClick(itemId, event) {
+  if (event.target.closest(".cart-step-btn") || event.target.closest(".price-edit-btn") || event.target.closest(".menu-card-btn-action")) {
+    return;
+  }
+  addToCart(itemId);
+}
+
+function quickEditPrice(itemId, event) {
+  if (event) event.stopPropagation();
+  const item = state.menu.find(m => m.id === itemId);
+  if (!item) return;
+  const newPriceStr = prompt(`Modify amount/price for ${item.name} (${item.icon}):`, item.price);
+  if (newPriceStr === null) return;
+  const newPrice = parseFloat(newPriceStr);
+  if (isNaN(newPrice) || newPrice <= 0) {
+    showToast("Please enter a valid price amount", "error");
+    return;
+  }
+  item.price = Math.round(newPrice);
+  // Also update price in current cart if already added
+  const inCart = state.currentOrderItems.find(i => i.id === itemId);
+  if (inCart) inCart.price = item.price;
+  saveState();
+  renderMenuGrid();
+  renderCart();
+  if (state.activeSection === "menu") renderMenuPage();
+  showToast(`Updated ${item.name} price to ${formatCurrency(item.price)}`, "success");
+}
+
+function quickToggleAvailability(itemId, event) {
+  if (event) event.stopPropagation();
+  const item = state.menu.find(m => m.id === itemId);
+  if (!item) return;
+  item.available = !item.available;
+  saveState();
+  renderMenuGrid();
+  if (state.activeSection === "menu") renderMenuPage();
+  showToast(`${item.name} is now ${item.available ? "Available ✅" : "Unavailable 🚫"}`, "info");
 }
 
 function filterMenuCategory(cat) { state.menuFilterCategory=cat; renderMenuGrid(); }
@@ -760,7 +850,7 @@ function renderMenuPage() {
             <div class="menu-admin-icon">${item.icon}</div>
             <div class="menu-admin-info">
               <span class="menu-admin-name">${item.name}</span>
-              <span class="menu-admin-price">${formatCurrency(item.price)}</span>
+              <span class="menu-admin-price" onclick="quickEditPrice('${item.id}', event)" title="Click to modify amount" style="cursor:pointer">${formatCurrency(item.price)} ✏️</span>
             </div>
             <div class="menu-admin-badge">
               <button class="avail-toggle ${item.available?"avail":"unavail"}" onclick="toggleMenuItemAvailability('${item.id}')">${item.available?"Available":"Unavailable"}</button>

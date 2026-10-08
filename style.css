@@ -609,8 +609,8 @@ canvas { display: block; }
 
 #menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 12px;
   padding: 16px;
   overflow-y: auto;
   flex: 1;
@@ -620,14 +620,15 @@ canvas { display: block; }
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px 10px;
+  padding: 14px 10px 12px;
   text-align: center;
   transition: all var(--transition);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 6px;
   position: relative;
   overflow: hidden;
 }
@@ -641,7 +642,7 @@ canvas { display: block; }
   transition: opacity var(--transition);
 }
 
-.menu-card:hover:not(.unavailable)::before { opacity: 0.06; }
+.menu-card:hover:not(.unavailable)::before { opacity: 0.04; }
 
 .menu-card:hover:not(.unavailable) {
   border-color: var(--primary);
@@ -649,13 +650,154 @@ canvas { display: block; }
   box-shadow: var(--shadow-md);
 }
 
-.menu-card:active:not(.unavailable) { transform: scale(0.97); }
+.menu-card.unavailable {
+  opacity: 0.65;
+  background: rgba(237, 232, 224, 0.6);
+  border-style: dashed;
+}
 
-.menu-card.unavailable { opacity: 0.45; cursor: not-allowed; }
+.menu-card-icon { font-size: 32px; line-height: 1; margin-bottom: 2px; }
+.menu-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.25; min-height: 32px; display: flex; align-items: center; justify-content: center; }
 
-.menu-card-icon { font-size: 32px; line-height: 1; }
-.menu-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
-.menu-card-price { font-size: 14px; font-weight: 800; color: var(--primary); }
+/* ─── PRICE TAG WITH EDIT BUTTON ─── */
+.menu-card-price-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 2px 0;
+}
+
+.price-val {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.price-edit-btn {
+  background: rgba(107, 58, 42, 0.08);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  padding: 2px 5px;
+  cursor: pointer;
+  color: var(--primary);
+  transition: all var(--transition);
+  opacity: 0.65;
+}
+
+.price-edit-btn:hover {
+  opacity: 1;
+  background: var(--primary);
+  color: #fff;
+  transform: scale(1.15);
+}
+
+/* ─── BUTTON BELOW PRICE TAG ─── */
+.menu-card-btn-action {
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  transition: all var(--transition);
+  border: 1.5px solid transparent;
+}
+
+.menu-card-btn-action.add-btn {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(107, 58, 42, 0.25);
+  cursor: pointer;
+}
+
+.menu-card-btn-action.add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 58, 42, 0.35);
+  background: linear-gradient(135deg, var(--primary-light), var(--accent));
+}
+
+.menu-card-btn-action.add-btn:active { transform: scale(0.96); }
+
+.btn-tag-amount {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Quantity stepper when item is in cart */
+.menu-card-btn-action.in-cart {
+  background: #fff;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  padding: 3px 5px;
+  box-shadow: 0 2px 6px rgba(107, 58, 42, 0.15);
+  cursor: default;
+}
+
+.cart-step-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.cart-step-btn:hover {
+  background: var(--accent);
+  transform: scale(1.12);
+}
+
+.cart-step-btn.minus {
+  background: var(--bg-alt);
+  color: var(--primary);
+  border: 1px solid var(--border);
+}
+
+.cart-step-btn.minus:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.cart-step-info {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Unavailable button */
+.menu-card-btn-action.unavailable-btn {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px dashed rgba(220, 38, 38, 0.4);
+  color: var(--danger);
+  cursor: pointer;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.menu-card-btn-action.unavailable-btn:hover {
+  background: rgba(220, 38, 38, 0.15);
+  border-style: solid;
+}
 
 .unavailable-tag {
   font-size: 9px;
